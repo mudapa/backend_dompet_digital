@@ -10,6 +10,7 @@ use App\Models\Wallet;
 use Melihovv\Base64ImageDecoder\Base64ImageDecoder;
 use Illuminate\Support\Str;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Facades\DB;
 
 class AuthController extends Controller
 {
@@ -49,6 +50,8 @@ class AuthController extends Controller
             );
         }
 
+        // Start transaction
+        DB::beginTransaction();
         // Create user
         try {
             $profilePicture = null;
@@ -61,12 +64,63 @@ class AuthController extends Controller
             if ($request->ktp) {
                 $ktp = $this->uploadBase64Image($request->ktp);
             }
+
+            // Create user
+            $user = User::create([
+                'name' => $request->name,
+                'email' => $request->email,
+                'username' => $request->email,
+                'password' => bcrypt($request->password),
+                'profile_picture' => $profilePicture,
+                'ktp' => $ktp,
+                'verified' => ($ktp) ? true : false,
+            ]);
+
+            // Create wallet
+            Wallet::create([
+                'user_id' => $user->id,
+                'balance' => 0,
+                'pin' => $request->pin,
+                'card_number' => $this->generateCardNumber(16),
+            ]);
+
+            // Commit transaction
+            DB::commit();
         } catch (\Throwable $th) {
-            echo $th;
+            // Rollback transaction
+            DB::rollBack();
+            return response()->json(
+                [
+                    'message' => $th->getMessage(),
+                ],
+                // 500 means internal server error
+                500
+            );
         }
     }
 
-    // Upload base64 image
+    // generate card number
+    private function generateCardNumber($length)
+    {
+        // Generate random number
+        $result = '';
+        for ($i = 0; $i < $length; $i++) {
+            $result .= mt_rand(0, 9);
+        }
+
+        // Check if card number already exists
+        $wallet = Wallet::where('card_number', $result)->exists();
+
+        if ($wallet) {
+            // Generate again if card number already exists
+            return $this->generateCardNumber($length);
+        }
+
+        // Return card number
+        return $result;
+    }
+
+    // upload base64 image
     private function uploadBase64Image($base64Image)
     {
         // Decode base64 image
@@ -80,6 +134,7 @@ class AuthController extends Controller
         // Upload image to storage
         Storage::disk('public')->put($image, $decodedContent);
 
+        // Return image name
         return $image;
     }
 }
