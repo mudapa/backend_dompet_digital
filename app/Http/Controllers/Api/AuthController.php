@@ -88,6 +88,25 @@ class AuthController extends Controller
 
             // Commit transaction
             DB::commit();
+
+            // Get user data
+            $token = JWTAuth::attempt([
+                'email' => $request->email,
+                'password' => $request->password,
+            ]);
+
+            // get user data
+            $userResponse = getUser($request->email);
+            // get token
+            $userResponse->token = $token;
+            // get token expiration
+            $userResponse->token_expiration = JWTAuth::factory()->getTTL() * 60;
+            // token type
+            $userResponse->token_type = 'bearer';
+
+            return response()->json(
+                $userResponse
+            );
         } catch (\Throwable $th) {
             // Rollback transaction
             DB::rollBack();
@@ -139,7 +158,6 @@ class AuthController extends Controller
 
             // get user data
             $userResponse = getUser($request->email);
-
             // get token
             $userResponse->token = $token;
             // get token expiration
