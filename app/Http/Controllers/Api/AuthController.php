@@ -11,6 +11,8 @@ use Melihovv\Base64ImageDecoder\Base64ImageDecoder;
 use Illuminate\Support\Str;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\DB;
+use Tymon\JWTAuth\Facades\JWTAuth;
+use Tymon\JWTAuth\Exceptions\JWTException;
 
 class AuthController extends Controller
 {
@@ -89,6 +91,54 @@ class AuthController extends Controller
         } catch (\Throwable $th) {
             // Rollback transaction
             DB::rollBack();
+            return response()->json(
+                [
+                    'message' => $th->getMessage(),
+                ],
+                // 500 means internal server error
+                500
+            );
+        }
+    }
+
+    // login
+    public function login(Request $request)
+    {
+        $credentials = $request->only('email', 'password');
+
+        $validator = Validator::make($credentials, [
+            'email' => 'required|email',
+            'password' => 'required|string|min:6',
+        ]);
+
+        // check if validator fails
+        if ($validator->fails()) {
+            return response()->json(
+                [
+                    'error' => $validator->errors(),
+                ],
+                // 400 means bad request
+                400
+            );
+        }
+
+        try {
+            // check if credentials is valid
+            $token = JWTAuth::attempt($credentials);
+
+            // check if token is not valid
+            if (!$token) {
+                return response()->json(
+                    [
+                        'message' => 'Login credentials are invalid',
+                    ],
+                    // 401 means unauthorized
+                    401
+                );
+            }
+
+            return $token;
+        } catch (JWTException $th) {
             return response()->json(
                 [
                     'message' => $th->getMessage(),
