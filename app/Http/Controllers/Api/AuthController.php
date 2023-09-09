@@ -137,7 +137,19 @@ class AuthController extends Controller
                 );
             }
 
-            return $token;
+            // get user data
+            $userResponse = getUser($request->email);
+
+            // get token
+            $userResponse->token = $token;
+            // get token expiration
+            $userResponse->token_expiration = JWTAuth::factory()->getTTL() * 60;
+            // token type
+            $userResponse->token_type = 'bearer';
+
+            return response()->json(
+                $userResponse
+            );
         } catch (JWTException $th) {
             return response()->json(
                 [
