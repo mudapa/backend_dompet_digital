@@ -19,3 +19,16 @@ function getUser($param)
 
     return $user;
 }
+
+function pinChecker($pin)
+{
+    $userId = auth()->user()->id;
+    $wallet = Wallet::where('user_id', $userId)->first();
+
+    // check wallet
+    if (!$wallet) return false;
+
+    // check pin
+    if ($wallet->pin == $pin) return true;
+    return false;
+}
