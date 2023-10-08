@@ -8,6 +8,7 @@ use App\Http\Controllers\Api\TopUpController;
 use App\Http\Controllers\Api\WebhookController;
 use App\Http\Controllers\Api\TransferController;
 use App\Http\Controllers\Api\DataPlanController;
+use App\Http\Controllers\Api\OperatorCardController;
 
 /*
 |--------------------------------------------------------------------------
@@ -33,4 +34,5 @@ Route::group(['middleware' => 'jwt.verify'], function ($router) {
     Route::post('top_ups', [TopUpController::class, 'store']);
     Route::post('transfers', [TransferController::class, 'store']);
     Route::post('data_plans', [DataPlanController::class, 'store']);
+    Route::get('operator_cards', [OperatorCardController::class, 'index']);
 });
