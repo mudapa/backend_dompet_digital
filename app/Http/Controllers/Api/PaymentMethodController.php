@@ -14,7 +14,7 @@ class PaymentMethodController extends Controller
             ->where('code', '!=', 'domgi')
             ->get()
             ->map(function ($item) {
-                $item->thumbnail = $item->thumbnail ? url('banks/' . $item->thumbnail) : "";
+                $item->thumbnail = $item->thumbnail ? url('banks' . $item->thumbnail) : "";
                 return $item;
             });
 
