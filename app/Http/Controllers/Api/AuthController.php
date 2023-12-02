@@ -57,14 +57,15 @@ class AuthController extends Controller
         // Create user
         try {
             $profilePicture = null;
+
             $ktp = null;
 
             if ($request->profile_picture) {
-                $profilePicture = $this->uploadBase64Image($request->profile_picture);
+                $profilePicture = uploadBase64Image($request->profile_picture);
             }
 
             if ($request->ktp) {
-                $ktp = $this->uploadBase64Image($request->ktp);
+                $ktp = uploadBase64Image($request->ktp);
             }
 
             // Create user
