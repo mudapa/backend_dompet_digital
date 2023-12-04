@@ -70,7 +70,7 @@ class AuthController extends Controller
             $user = User::create([
                 'name' => $request->name,
                 'email' => $request->email,
-                'username' => $request->email,
+                'username' => $request->name,
                 'password' => bcrypt($request->password),
                 'profile_picture' => $profilePicture,
                 'ktp' => $ktp,
